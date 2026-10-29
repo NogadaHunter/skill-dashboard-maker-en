@@ -1,0 +1,13 @@
+{
+  "name": "skill-dashboard-maker",
+  "displayName": "Skill Dashboard Maker",
+  "version": "1.0.0",
+  "description": "Reads every skill installed in your Claude and builds a single-file HTML skill dashboard with search, category filters and copy-ready default and situational prompts. Attach a previous dashboard to refresh only the skills that were added, changed or removed.",
+  "author": {
+    "name": "Peopleware Education Consulting Group · AI Prompt Lab"
+  },
+  "homepage": "https://github.com/NogadaHunter/skill-dashboard-maker-en",
+  "repository": "https://github.com/NogadaHunter/skill-dashboard-maker-en",
+  "license": "MIT",
+  "keywords": ["skills", "dashboard", "prompts", "productivity", "catalog"]
+}

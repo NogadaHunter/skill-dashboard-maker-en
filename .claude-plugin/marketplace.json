@@ -1,0 +1,16 @@
+{
+  "name": "peopleware-skill-dashboard-en",
+  "description": "Skill dashboard maker by Peopleware Education Consulting Group · AI Prompt Lab",
+  "owner": {
+    "name": "Peopleware Education Consulting Group · AI Prompt Lab"
+  },
+  "plugins": [
+    {
+      "name": "skill-dashboard-maker",
+      "source": "./plugins/skill-dashboard-maker",
+      "description": "Turns every skill installed in your Claude into a one-page HTML dashboard with search, category filters and copy-ready prompts. Attach a previous dashboard to refresh only the skills that changed.",
+      "category": "productivity",
+      "keywords": ["skills", "dashboard", "prompts", "productivity", "catalog"]
+    }
+  ]
+}

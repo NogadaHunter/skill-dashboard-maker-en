@@ -1,0 +1,70 @@
+[
+  {
+    "name": "example-meeting-notes",
+    "display_name": "Meeting Notes Writer",
+    "category": "Documents & Reports",
+    "summary": "Turns meeting notes or a transcript into minutes with decisions and action items, as a DOCX.",
+    "inputs": "Meeting notes, transcript (TXT or DOCX), chat log",
+    "outputs": "1 minutes DOCX + action item table",
+    "formats": ["DOCX"],
+    "triggers": ["Write up the minutes", "Turn these notes into meeting minutes", "Make a document of this meeting"],
+    "prompt": "(Attach: [meeting notes].txt)\nTurn this meeting into minutes.\nThe meeting is [meeting name] on [date].",
+    "situations": [
+      {"title": "One-page summary for a report", "prompt": "(Attach: [transcript].docx)\nWrite one-page minutes that focus on the decisions."},
+      {"title": "Action items only", "prompt": "(Attach: [meeting notes].txt)\nPull only the action items with an owner and a due date, as a table."}
+    ],
+    "tips": ["Give the attendees and the date for an accurate header.", "Anything missing from the notes is marked [to confirm] instead of guessed."],
+    "related": ["example-sales-report"]
+  },
+  {
+    "name": "example-blog-writer",
+    "display_name": "Blog Post Writer",
+    "category": "Content & Marketing",
+    "summary": "Takes a topic and keywords and writes a blog post of about 1,000 words with 5 headline options.",
+    "inputs": "Topic, 3 to 5 keywords, audience (optional)",
+    "outputs": "5 headline options + 1 blog post in MD",
+    "formats": ["MD"],
+    "triggers": ["Write a blog post about remote work", "Make a post with these keywords", "Give me some headlines"],
+    "prompt": "Write a blog post about [topic].\nKeywords: [keyword 1], [keyword 2], [keyword 3]\nAudience: [who it is for]",
+    "situations": [
+      {"title": "Informational post", "prompt": "Write an informational blog post that explains [topic] to someone new to it. Keywords: [keywords]."},
+      {"title": "Personal-experience post", "prompt": "Write a review-style blog post based on my experience.\nWhat happened: [a few lines]\nKeywords: [keywords]"}
+    ],
+    "tips": ["3 to 5 keywords spread evenly across the headline and subheadings.", "Without a length, it writes about 1,000 words."],
+    "related": []
+  },
+  {
+    "name": "example-lesson-planner",
+    "display_name": "Lesson Plan Builder",
+    "category": "Education & Training",
+    "summary": "Takes a course topic, audience and length and builds a session-by-session curriculum and lesson plan DOCX.",
+    "inputs": "Course topic, audience, total time",
+    "outputs": "Curriculum table + 1 lesson plan DOCX",
+    "formats": ["DOCX"],
+    "triggers": ["Plan a curriculum for a data literacy course", "Make a 3-hour lesson plan", "Outline a training course on customer service"],
+    "prompt": "Plan a curriculum for a course on [topic].\nAudience: [who is attending]\nLength: [total time]",
+    "situations": [
+      {"title": "Half-day workshop", "prompt": "Make a 3-hour lesson plan on [topic] for [audience]. Include one hands-on exercise."},
+      {"title": "Multi-day course", "prompt": "Structure a 2-day, 16-hour course on [topic] for [audience]."}
+    ],
+    "tips": ["Say whether the audience is new or experienced so the exercises fit.", "Always give the total time; sessions are split from it."],
+    "related": []
+  },
+  {
+    "name": "example-sales-report",
+    "display_name": "Sales Report Builder",
+    "category": "Data & Automation",
+    "summary": "Takes a sales spreadsheet and builds a report XLSX and one-page PDF with a monthly trend chart.",
+    "inputs": "Sales data as XLSX or CSV",
+    "outputs": "1 report XLSX + 1 one-page summary PDF",
+    "formats": ["XLSX", "PDF"],
+    "triggers": ["Make a sales report", "Analyze this spreadsheet and summarize it", "Chart the monthly trend"],
+    "prompt": "(Attach: [sales data].xlsx)\nMake a monthly report from this sales data.",
+    "situations": [
+      {"title": "Month over month only", "prompt": "(Attach: [sales data].xlsx)\nCompare this month with last month and list only the products that went up or down."},
+      {"title": "Top products chart", "prompt": "(Attach: [sales data].csv)\nChart the top 5 products by sales and make a one-page summary PDF."}
+    ],
+    "tips": ["The file needs date, product and amount columns.", "Code execution (file creation) must be turned on."],
+    "related": ["example-meeting-notes"]
+  }
+]

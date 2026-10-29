@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>__TITLE__</title>
+<style>
+/* Layout: header → key numbers → category bars (click to filter) → search and list | detail (stacks when narrow) → update note */
+:root {
+  --paper: #f5f6f3; --panel: #ffffff; --ink: #1b2230; --ink-2: #566070; --line: #dfe3e0; --accent: #1f6a5a; --accent-ink: #ffffff;
+  --warn: #9a5b00; --added: #2f7a3d; --removed: #a8382f;
+  --c1: #2f5d9e; --c2: #1f7a6a; --c3: #a35c1f; --c4: #7a4aa0; --c5: #a83a5a; --c6: #4f7a1f; --c7: #3a7d9c; --c8: #6b6f78;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-display: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+  --r: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #13161b; --panel: #1b1f26; --ink: #e8ebee; --ink-2: #9aa3ad; --line: #2c323b; --accent: #5fbfa6; --accent-ink: #0d1512;
+  --warn: #e0a54a; --added: #6cc47c; --removed: #ee7d72;
+  --c1: #7fa8e6; --c2: #5fc4b0; --c3: #e3a061; --c4: #b996e0; --c5: #e98aa6; --c6: #a3cf6b; --c7: #78c1e0; --c8: #a6abb4;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #13161b; --panel: #1b1f26; --ink: #e8ebee; --ink-2: #9aa3ad; --line: #2c323b; --accent: #5fbfa6; --accent-ink: #0d1512;
+  --warn: #e0a54a; --added: #6cc47c; --removed: #ee7d72;
+  --c1: #7fa8e6; --c2: #5fc4b0; --c3: #e3a061; --c4: #b996e0; --c5: #e98aa6; --c6: #a3cf6b; --c7: #78c1e0; --c8: #a6abb4;
+  color-scheme: dark;
+}
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+.eyebrow { margin: 0; font-size: 12px; letter-spacing: .08em; color: var(--accent); font-weight: 600; }
+h1 { margin: 2px 0 0; font-family: var(--font-display); font-size: clamp(26px, 4vw, 36px); font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
+.lead { margin: 6px 0 0; color: var(--ink-2); max-width: 70ch; }
+.changes { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; padding: 10px 14px; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); }
+.changes[hidden] { display: none; }
+.changes b { font-weight: 600; }
+.chg-add { color: var(--added); } .chg-del { color: var(--removed); } .chg-upd { color: var(--warn); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 12px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 2px; min-width: 0; }
+.kpi-label { font-size: 12px; color: var(--ink-2); }
+.kpi-num { font-family: var(--font-display); font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.kpi-sub { font-size: 12px; color: var(--ink-2); overflow-wrap: anywhere; }
+.section-h { margin: 0 0 10px; font-size: 15px; font-weight: 650; }
+.cats { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; }
+.bars { display: grid; gap: 6px; }
+.bar { display: grid; grid-template-columns: minmax(0, 11.5rem) minmax(0, 1fr) 2.5rem; align-items: center; gap: 10px; background: none; border: 0; padding: 4px 6px; border-radius: 6px; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.bar:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.bar[aria-pressed="true"] { background: color-mix(in srgb, var(--ink) 9%, transparent); }
+.bar-label { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--ink) 6%, transparent); overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 6px; }
+.bar-n { font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; }
+.finder { container-type: inline-size; display: grid; gap: 12px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.search { flex: 1 1 260px; min-width: 0; font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 9px 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: inherit; font-size: 13px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
+.count { margin: 0; font-size: 13px; color: var(--ink-2); }
+.split { display: grid; gap: 14px; }
+@container (min-width: 880px) { .split { grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); align-items: start; } .detail { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; } }
+.list { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); max-height: 640px; overflow: auto; }
+.item { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; align-items: start; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 10px 14px; cursor: pointer; }
+.item:last-child { border-bottom: 0; }
+.item:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.item[aria-selected="true"] { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.item .dot { margin-top: 7px; }
+.item-title { font-weight: 600; font-size: 14px; }
+.item-name { grid-column: 2; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); overflow-wrap: anywhere; }
+.item-sum { grid-column: 2; font-size: 12.5px; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.empty { padding: 28px; text-align: center; color: var(--ink-2); font-size: 13px; }
+.detail { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.d-tags { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12.5px; color: var(--ink-2); }
+.d-title { margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
+.d-name { margin: 2px 0 0; font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); overflow-wrap: anywhere; }
+.d-sum { margin: 0; line-height: 1.65; }
+.label { margin: 4px 0 0; font-size: 12px; font-weight: 650; color: var(--ink-2); letter-spacing: .02em; }
+.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; font-size: 13.5px; }
+.facts dt { color: var(--ink-2); }
+.facts dd { margin: 0; overflow-wrap: anywhere; }
+.prompt { position: relative; border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); padding: 12px 14px; padding-right: 84px; }
+.prompt-title { margin: 0 0 6px; font-size: 12.5px; font-weight: 600; }
+.pre { margin: 0; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.copy { position: absolute; top: 10px; right: 10px; font: inherit; font-size: 12.5px; color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 8px; padding: 5px 11px; cursor: pointer; }
+.copy:hover { filter: brightness(1.08); }
+.tchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tchip { font-size: 13px; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; background: var(--paper); }
+.rel { font: inherit; font-family: var(--font-mono); font-size: 12.5px; color: var(--ink); background: var(--paper); border: 1px dashed var(--line); border-radius: 999px; padding: 2px 10px; cursor: pointer; }
+.rel:hover { border-style: solid; }
+.tips { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: 13.5px; }
+.foot { font-size: 13px; color: var(--ink-2); border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 4px; }
+.foot code { font-family: var(--font-mono); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+:is(.chip, .bar, .item, .rel, .copy, .search):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@container (max-width: 520px) { .bar { grid-template-columns: minmax(0, 8.5rem) minmax(0, 1fr) 2rem; } }
+@media (prefers-reduced-motion: no-preference) { .detail { animation: rise .25s ease-out; } @keyframes rise { from { opacity: .4; transform: translateY(4px); } to { opacity: 1; transform: none; } } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">CLAUDE SKILL DASHBOARD</p>
+    <h1 id="title">__TITLE__</h1>
+    <p class="lead" id="lead"></p>
+    <div class="changes" id="changes" hidden></div>
+  </header>
+
+  <section class="kpis" id="kpis" aria-label="Key numbers"></section>
+
+  <section class="cats" aria-labelledby="cats-h">
+    <h2 class="section-h" id="cats-h">Skills by category</h2>
+    <div class="bars" id="bars"></div>
+  </section>
+
+  <section class="finder" aria-labelledby="find-h">
+    <h2 class="section-h" id="find-h" style="margin:0">Find a skill</h2>
+    <div class="controls">
+      <input class="search" id="q" type="search" placeholder="Search by task or skill name (e.g. meeting notes, blog, lesson plan)" aria-label="Search skills">
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Category filter"></div>
+    <p class="count" id="count"></p>
+    <div class="split">
+      <div class="list" id="list" role="listbox" aria-label="Skill list"></div>
+      <article class="detail" id="detail" aria-live="polite"></article>
+    </div>
+  </section>
+
+  <footer class="foot" id="foot"></footer>
+</div>
+
+<script type="application/json" id="skill-data">__SKILL_DATA__</script>
+<script>
+(() => {
+  const DATA = JSON.parse(document.getElementById('skill-data').textContent);
+  const skills = DATA.skills || [];
+  const cats = DATA.categories || [...new Set(skills.map((s) => s.category))];
+  const colorOf = (c) => `var(--c${(cats.indexOf(c) % 8) + 1})`;
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  const titleOf = (s) => s.display_name || s.ko_name || s.name;
+  const state = { q: '', cat: '', sel: skills.length ? skills[0].name : null };
+
+  // Header
+  const date = DATA.generated_at || '';
+  $('lead').textContent = `All ${plural(skills.length, 'skill', 'skills')} in your Claude at a glance. Pick one and copy its prompt in a single click.${date ? ` As of ${date}.` : ''}`;
+  const ch = DATA.changes || {};
+  if ((ch.added || []).length || (ch.removed || []).length || (ch.updated || []).length) {
+    const box = $('changes');
+    box.hidden = false;
+    box.append(el('span', null, `Changes since ${ch.previous_date || 'the last dashboard'}`));
+    const add = (cls, label, list) => { if (!list || !list.length) return; const s = el('span', cls); s.append(el('b', null, `${label} ${list.length}`), document.createTextNode(` · ${list.join(', ')}`)); box.append(s); };
+    add('chg-add', 'Added', ch.added); add('chg-upd', 'Updated', ch.updated); add('chg-del', 'Removed', ch.removed);
+  }
+
+  // Key numbers
+  const counts = cats.map((c) => [c, skills.filter((s) => s.category === c).length]);
+  const top = counts.slice().sort((a, b) => b[1] - a[1])[0] || ['', 0];
+  const kpi = (label, num, sub) => { const k = el('div', 'kpi'); k.append(el('span', 'kpi-label', label), el('span', 'kpi-num', num), el('span', 'kpi-sub', sub)); $('kpis').append(k); };
+  kpi('Skills', String(skills.length), 'On this dashboard');
+  kpi('Categories', String(cats.length), 'Skills grouped by use');
+  kpi('Largest category', String(top[1]), top[0] || '—');
+  if (ch.added || ch.removed) kpi('This update', `+${(ch.added || []).length} / −${(ch.removed || []).length}`, 'Skills added / removed');
+  else kpi('Ready prompts', String(skills.reduce((n, s) => n + 1 + (s.situations || []).length, 0)), 'Prompts you can copy');
+
+  // Category bars
+  const max = Math.max(1, ...counts.map((c) => c[1]));
+  function drawBars() {
+    const bars = $('bars'); bars.replaceChildren();
+    counts.forEach(([c, n]) => {
+      const b = el('button', 'bar'); b.type = 'button'; b.setAttribute('aria-pressed', String(state.cat === c));
+      b.title = `${c}: ${plural(n, 'skill', 'skills')}`;
+      const lab = el('span', 'bar-label'); const d = el('span', 'dot'); d.style.background = colorOf(c); d.style.marginRight = '6px'; lab.append(d, document.createTextNode(c));
+      const track = el('span', 'bar-track'); const fill = el('span', 'bar-fill'); fill.style.display = 'block'; fill.style.width = `${(n / max) * 100}%`; fill.style.background = colorOf(c); track.append(fill);
+      b.append(lab, track, el('span', 'bar-n', String(n)));
+      b.addEventListener('click', () => { state.cat = state.cat === c ? '' : c; draw(); $('find-h').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      bars.append(b);
+    });
+  }
+
+  // Filters and list
+  $('q').addEventListener('input', (e) => { state.q = e.target.value.trim().toLowerCase(); draw(); });
+  function drawChips() {
+    const box = $('chips'); box.replaceChildren();
+    const mk = (label, value) => {
+      const b = el('button', 'chip'); b.type = 'button'; b.setAttribute('aria-pressed', String(state.cat === value));
+      if (value) { const d = el('span', 'dot'); d.style.background = colorOf(value); b.append(d); }
+      b.append(document.createTextNode(label));
+      b.addEventListener('click', () => { state.cat = state.cat === value ? '' : value; draw(); });
+      box.append(b);
+    };
+    mk('All', ''); cats.forEach((c) => mk(c, c));
+  }
+  const hay = (s) => [s.name, titleOf(s), s.summary, s.category, s.inputs, s.outputs, (s.triggers || []).join(' '), s.prompt].join(' ').toLowerCase();
+  function visible() { return skills.filter((s) => (!state.cat || s.category === state.cat) && (!state.q || hay(s).includes(state.q))); }
+  function drawList(list) {
+    const box = $('list'); box.replaceChildren();
+    if (!list.length) { box.append(el('div', 'empty', 'No skills match. Try a shorter search or clear the category filter.')); return; }
+    list.forEach((s) => {
+      const b = el('button', 'item'); b.type = 'button'; b.setAttribute('role', 'option'); b.setAttribute('aria-selected', String(s.name === state.sel));
+      const d = el('span', 'dot'); d.style.background = colorOf(s.category);
+      b.append(d, el('span', 'item-title', titleOf(s)), el('span', 'item-name', s.name), el('span', 'item-sum', s.summary || ''));
+      b.addEventListener('click', () => { state.sel = s.name; draw(); if (window.innerWidth < 880) $('detail').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+      box.append(b);
+    });
+  }
+
+  // Copy
+  async function copy(text, btn, pre) {
+    const label = btn.textContent;
+    try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied'; }
+    catch (e) { const r = document.createRange(); r.selectNodeContents(pre); const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r); btn.textContent = 'Ctrl+C'; }
+    setTimeout(() => { btn.textContent = label; }, 1500);
+  }
+  function promptBox(title, text) {
+    const box = el('div', 'prompt');
+    if (title) box.append(el('p', 'prompt-title', title));
+    const pre = el('pre', 'pre', text);
+    const btn = el('button', 'copy', 'Copy'); btn.type = 'button';
+    btn.addEventListener('click', () => copy(text, btn, pre));
+    box.append(pre, btn);
+    return box;
+  }
+
+  // Detail
+  function drawDetail(list) {
+    const box = $('detail'); box.replaceChildren();
+    const s = skills.find((x) => x.name === state.sel) || list[0];
+    if (!s) { box.append(el('div', 'empty', 'Pick a skill on the left to see how to use it.')); return; }
+    const tags = el('p', 'd-tags'); const d = el('span', 'dot'); d.style.background = colorOf(s.category);
+    tags.append(d, document.createTextNode(s.category || ''));
+    if ((s.formats || []).length) tags.append(document.createTextNode(` · ${s.formats.join(', ')}`));
+    const head = el('div'); head.append(tags, el('h3', 'd-title', titleOf(s)), el('p', 'd-name', s.name));
+    box.append(head, el('p', 'd-sum', s.summary || ''));
+    box.append(el('p', 'label', 'Default prompt'), promptBox('', s.prompt || ''));
+    if ((s.triggers || []).length) {
+      box.append(el('p', 'label', 'Claude picks this skill up when you say'));
+      const t = el('div', 'tchips'); s.triggers.forEach((x) => t.append(el('span', 'tchip', x))); box.append(t);
+    }
+    const facts = el('dl', 'facts');
+    [['Input', s.inputs], ['Output', s.outputs], ['Bundled files', s.files != null ? plural(s.files, 'file', 'files') : '']].forEach(([k, v]) => { if (v) facts.append(el('dt', null, k), el('dd', null, v)); });
+    box.append(facts);
+    if ((s.situations || []).length) {
+      box.append(el('p', 'label', 'Prompts for other situations'));
+      s.situations.forEach((x) => box.append(promptBox(x.title, x.prompt)));
+    }
+    if ((s.tips || []).length) {
+      box.append(el('p', 'label', 'Tips'));
+      const ul = el('ul', 'tips'); s.tips.forEach((x) => ul.append(el('li', null, x))); box.append(ul);
+    }
+    const names = new Set(skills.map((x) => x.name));
+    const rel = (s.related || []).filter((x) => names.has(x));
+    if (rel.length) {
+      box.append(el('p', 'label', 'Works well with'));
+      const r = el('div', 'tchips');
+      rel.forEach((x) => { const b = el('button', 'rel', x); b.type = 'button'; b.addEventListener('click', () => { state.sel = x; state.q = ''; state.cat = ''; $('q').value = ''; draw(); }); r.append(b); });
+      box.append(r);
+    }
+  }
+
+  function draw() {
+    const list = visible();
+    if (!list.some((s) => s.name === state.sel) && list.length) state.sel = list[0].name;
+    drawBars(); drawChips(); drawList(list); drawDetail(list);
+    const filtered = state.q || state.cat;
+    $('count').textContent = filtered ? `${plural(list.length, 'skill matches', 'skills match')}.` : `${plural(skills.length, 'skill', 'skills')} in total. Pick one to see its prompts and how to use it.`;
+  }
+
+  // Footer
+  const foot = $('foot');
+  const p1 = el('p', null); p1.style.margin = '0';
+  p1.append(document.createTextNode('After adding or removing skills, attach this file and tell Claude '), el('code', null, 'update my skill dashboard'), document.createTextNode('. Only the changed skills are rewritten.'));
+  const p2 = el('p', null, `Made with skill-dashboard-maker${DATA.maker_version ? ' ' + DATA.maker_version : ''} · Skills from: ${DATA.source || 'Claude skills'}`); p2.style.margin = '0';
+  foot.append(p1, p2);
+
+  draw();
+})();
+</script>
+</body>
+</html>
